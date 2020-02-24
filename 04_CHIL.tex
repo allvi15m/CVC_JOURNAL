@@ -1,0 +1,68 @@
+\subsection{Overview of the testbed}
+Although the algorithm performed well in the offline simulation, it is not enough just to validate the algorithm in an off-line environment. To validate the feasibility of the algorithm for practical use real-time controller hardware in the loop (CHIL) simulation was performed. The CHIL testbed and python API presented in \cite{newaz2019controller} was used for the CHIL validation of the CVC algorithm. Fig. \ref{fig:CHIL_BLOCK} represents the block diagram of the CHIL setup. In the case of the real-time CHIL simulation, a more realistic scenario was considered. It was considered that the real and reactive power information from the load points and the inverters were available. Also, the current status of the capacitor banks and OLTC was available. Finally, voltage violation detection signal as well as the current voltage magnitude and voltage angle at the substation was available. Besides that, no other information was available from the system. The actual CHIL setup is shown in Fig. \ref{fig:CHIL_SETUP}. The CHIL simulation setup consists of three major components.
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/RT_BLOCK_2.png}
+\caption{CHIL block diagram}
+\label{fig:CHIL_BLOCK}
+\end{figure*}
+
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/LAB_SETUP.png}
+\caption{Actual CHIL setup}
+\label{fig:CHIL_SETUP}
+\end{figure}
+
+
+\subsubsection{Power System Modeled in Digital Real-time Simulator (DRTS}
+It consists of different models designed to represent and simulate the behavior and interactions of grid-connected distributed energy resources (DERs) in a real-time environment. Some of these components are a) models of DERs (Lithium-ion batteries as energy storage systems (ES), Photovoltaic (PV) systems), b) dynamic load models designed to simulate dynamic loading conditions,  c) models of the distribution network and d) models of smart-meter devices designed to measure and communicate data such as voltages, currents, active power, and reactive power to the main (external) control system. All of these systems are modeled inside the digital real-time simulator (DRTS). 
+
+\subsubsection{DNP3 Master Server}
+The 'DNP3 Master Server' is in charge of sending and receiving data from the DRTS over DNP3. It also records the data and establishes connections with controllers.  It has the following main parts.
+\begin{itemize}
+    \item \textbf{OpenDNP3 C++} It consists of a real-world DNP3 communication infrastructure based on the OpenDNP3 \cite{opendnp3_2020} project. It communicates with the smart-meter models inside the DRTS via the IEEE 1815 DNP3 communication protocol. It also sends data back to the DRTS using DNP3 as well. It is programmed in C++ using OpenDNP3 as a base to enable DNP3 communication.
+    \item \textbf{Python Communication Interface:} This consists of application programming interfaces (APIs) designed to provide inter-process communication to any generic control algorithm. They provide a communication bridge between the DNP3 communication module, a database management server, and any generic control algorithm devised to be deployed (and tested) in real-time system environments. The API is designed to work with SQL light databases. The API also allows any generic controller to send data to the communication layer to be sent to the DRTS.
+    \item \textbf{Database} The database is there to store the data received over the DNP3 communication layer from the DRTS. In this implementation, an SQL light database was used. The 'Python Communication Interface' layer writes the data received over DNP3 in the database it also enables sending of the data to the outside control algorithm.
+\end{itemize}
+
+\subsubsection{Controller:}
+The controller, in this case, is a computer running the power-flow and CVC algorithm. The CVC algorithm and power-flow are controlled using a coordinator script. This is a script written in the Matlab scripting language to communicate with the Controller-to-database API over TCP/IP and execute the various sections of the CVC algorithm in proper order. The coordinator script starts by running the communication script to receive the reinvent data from the DNP3 Master Server. Then it runs a power-flow using openDSS based on the current data. This is done by configuring and controlling the openDSS engine oven the windows COM interface. After running the power-flow the the coordinator script runs the CVC algorithm to get the reactive power compensation needed. And then it runs the communication script again to send the control actions back to the DNP3 Master Server over TCP/IP and the DNP3 Master Server relays the data to the DRTS simulation over DNP3.
+% over the API shown in Fig.\ref{fig:Overview} and sends it to the power-flow step. The power-flow is performed using openDSS. An openDSS model of the feeder shown in Fig. \ref{fig:feeder2} is modeled in open DSS and the power-flow step changes the power values of all the loads and sources according to the data received from the real-time simulation. Then the system is solved to get the P, Q,|V| and $\delta$ data as seen in Fig. \ref{fig:Overview}. The master script then uses this data to run the Electrical distance calculations and voltage sensitivity analysis and follows the process discussed in chapter \ref{CVC} until it reaches the Send Q references step. Then it sends the required Q references to the Controller-to-database API over TCP/IP and the API relays the data to the DRTS through the communication layer of the database manager.
+
+\subsection{Real-time CHIL results}
+The real-time simulation was run for 900 seconds using the system PV and load profile used in the offline simulation. The simulation uses the system profile between 38160s to 39060s. Fig. \ref{fig:RT_VVC} shows the whole real-time simulation voltage profiles. The dashed line represents the upper limit 'UL' of the voltage bounds. The rest of the legend uses the same notations as Fig.\ref{fig:with_cvc}. It can be seen in the figure that the real-time implementation of the algorithm is able to mitigate the voltage violation that occurs during the simulation. Fig. \ref{fig:RT_VS_OFF_V} shows the voltage profile of 'V7' for both the offline and real-time simulation. The solid line represents the offline and the dotted line represents the real-time profile. It can be seen that the real-time simulation takes 11s to mitigate the voltage violation where the offline simulation took 2s. This is expected as the real-time simulation implements a real-world communication infrastructure with smart meters and a power-flow step to estimate the system status. This response time is comparable to the current voltage regulation schemes which take around 5s to 10s to coordinate system voltages. Other than that the offline and real-time profiles deviate less than 2\%. 'V7' is chosen to be shown here because it shows the highest violation in the system. 
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/RT_VOLTAGES.png}
+\caption{Real-time voltage profile with coordinated voltage control.}
+\label{fig:RT_VVC}
+\end{figure}
+% As the beginning of the 24-hour profile did not have any voltage violations the real-time simulation was run from 9:00 AM to 12:00 AM. This was done to save time and resources used for real-time validation. Fig. \ref{fig:RT_VVC} shows the voltage profile of the system for real-time simulation with CVC active. It should be noted that the same load and DG profiles were used for off-line and real-time validation. It can be observed that the voltage profile of the system is within the upper and lower limit. Fig. \ref{fig:RT_VVC} uses the same notation as Fig. \ref{fig:with_cvc}. The voltage profiles are a lot more fluctuations compared to the off-line simulation in this case. This is due to the fact that unlike the offline validation the CVC algorithm is not running synchronously with the real-time simulation. This causes a delay in communication and response time and the algorithm does not have the most recent state of the system. So the algorithm receives data from a few seconds back and does not immediately see the effects of its actions. This causes the algorithm to provide extra commands to the DG inverts. This can be seen more clearly in Fig. \ref{fig:RT_PQ}. It can be seen that the references to the DG inverters are a lot more varied in this case compared to the off-line validation. The algorithm behaves differently while compensating for the under-voltage case as well. As it can be seen in Fig \ref{fig:RT_CAP}, instead of using the DG inverters the algorithm decided to use the CAP1 capacitor bank in this case. In the offline simulation, the algorithm used the DG inverters to compensate instead. Although the algorithm behaves differently in the real-time simulation it is still able to maintain the system voltage within the upper and lower limits. The maximum round trip communication time seen in the real-time implementation was 12 seconds. Another reason for the different behavior might be due to the power-flow step. As mentioned before, the offline simulation uses the actual states of the system for all it's calculations but the real-time CHIL simulation uses estimated states based on a power-flow.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/OFF_VS_RT.png}
+\caption{Real-time vs offline voltage profile with coordinated voltage control.}
+\label{fig:RT_VS_OFF_V}
+\end{figure}
+Fig. \ref{RT_PQ} shows the reactive power supplied the PV in B20090P. The offline results are shown using the solid line and real-time results are represented using the dotted lines. The responses differ less than 2\% and real-time response is seen to take longer in this case as well. The delay is consistent with the delay seen in Fig. \ref{fig:RT_VS_OFF_V}.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/PQ_RT.png}
+\caption{Real-time vs off-line reactive power supplied by PV}
+\label{fig:RT_PQ}
+\end{figure}
+
+Finally the switching operations of both CAP1 and CAP2 mentioned in Section \ref{off1} for both real-time and offline simulations are shown in Fig. \ref{fig:RT_CAP}. It can be seen that the resonances are the same but the real-time response takes 13s. This is also contestant with the results shown in Fig. \ref{fig:RT_VS_OFF_V}.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/CAPS_RT.PNG}
+\caption{Capacitor bank switching states real-time vs offline.}
+\label{fig:RT_CAP}
+\end{figure}

@@ -1,0 +1,131 @@
+
+%use mybib.bib for bibliography. bibtex is used for bibliography
+%\documentclass[journal,12pt,onecolumn]{IEEEtran}
+\documentclass[Journal]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{wrapfig}
+\usepackage{float}
+%\usepackage[section]{placeins}
+%\usepackage{subcaption}
+\usepackage{array}
+\usepackage[export]{adjustbox}
+\usepackage{tabu}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{siunitx}
+\usepackage{siunitx}
+\usepackage{ wasysym }
+\usepackage[usenames, dvipsnames]{color}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\ifCLASSINFOpdf
+
+\else
+
+\fi
+
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+
+\title{Coordinated Voltage Control of Distribution System Containing Inverter Interfaced Distributed Generation}
+
+\author{\IEEEauthorblockN{Alvi Newaz\IEEEauthorrefmark{1},
+Juan Ospina\IEEEauthorrefmark{0}, M. Omar Faruque\IEEEauthorrefmark{0}}
+\IEEEauthorblockA{\\The Department of Electrical and Computer Engineering at the FAMU-FSU College of Engineering \\ Center for Advanced Power Systems, Florida State University \\
+2000 Levy Avenue, Tallahassee, FL., USA.
+%Wherever\\
+Email: \IEEEauthorrefmark{1}an15m@fsu.edu}}
+
+
+% \author{ Alvi~Newaz,~\IEEEmembership{Student Member,~IEEE,}
+% Juan~Ospina,~\IEEEmembership{Student Member,~IEEE and}
+%      M.~O.~Faruque,~\IEEEmembership{Senior Member,~IEEE}
+%         }% <-this % stops a space
+
+
+
+\maketitle
+%\IEEEpeerreviewmaketit
+%\linenumbers
+
+\begin{abstract}
+    This paper proposes a novel coordinated voltage control solution for distribution grids with high penetration of distributed generations (DGs). The control algorithm uses the coordination between the traditional voltage regulation devices and the inverter interfaced DGs capability to supply reactive power to mitigate voltage violation. The proposed algorithm was tested both offline and in a controller hardware-in-the-loop (CHIL) setup. The results show that the algorithm is successful in coordinating the available system resources to keep the system voltage within the desired limit. The response time for the algorithm was (PUT in CHIL times).
+\end{abstract}
+
+
+\begin{IEEEkeywords}
+Controller Hardware-In-the-Loop,Coordinated Voltage Control, Distributed Generations, Voltage Regulation
+\end{IEEEkeywords}
+
+
+
+\section{Introduction}
+The energy industry is rapidly approaching a significant penetration of distributed generation (DG) in the distribution system. This higher penetration of distributed energy resources (DERs) has introduced reverse power flow in the system. The traditional voltage regulation devices only consider unidirectional power flow and operate based on the consideration that the voltage down the line will decrease depending on the line impedance. But this assumption is not valid with distributed generation as they can change the voltage of a node by supplying or absorbing reactive power. The uncertainty of the distributed wind and solar renewable resources can also cause traditional voltage regulation devices to operate more than necessary \cite{int1}.
+
+With the rise of technology such as smart grid, advanced metering infrastructure (AMI) and phasor measurement units (PMUs), a lot more data regarding the system status is available. How to efficiently use this data to optimize the voltage control coordination is still a topic that requires much research. In most of the current literature, this problem is addressed as an optimum power flow problem or a mixed-integer optimization problem \cite{int2}. 
+
+In \cite{NLR_1}, researchers propose a model predictive control (MPC) based technique where they curtail the DG generation based on the distribution network operator requirements. The researchers assume Voltage magnitude and angle measurements are available to the algorithm. The researchers state that the MPC can be formulated as a quadratic program and solved using commercial solvers.
+
+In \cite{NLR_2} researchers propose a decentralized control scheme where they divide the distribution system into different control zones based on the position of voltage regulators. Each control zone is controlled independently of each other. The coordinated voltage regulation problem is formulated as a minimization problem in this case as well, and the optimum tap position of the voltage regulators are determined using big-bang crunch optimization. The researchers here consider a 15-minute control horizon and assume real-time measurement from the system is available.
+
+The researchers in \cite{NLR_3} propose a coordinated voltage control scheme based on data collected from the distribution system phasor measurement unit (DPMU). Here the researchers propose using a reduced system model by representing the nodes between DPMUs as equivalent $\pi$ or T  lines. Then a rule-based control methodology is used to coordinate voltage regulation.  
+
+Researchers in \cite{NLR_4} present another rule-based approach where they consider a DC microgrid, as well as traditional regulation, devised added to the grid. The researchers validated their algorithm using power hardware in the loop real-time simulation. 
+
+Researchers in \cite{NLR_5} use MPC based approach to control the voltage in a distribution grid by running two different MPCs in parallel in different time scale. The traditional regulation devices in conjunction with the available DG inverters in the system are controlled using a complex MPC formulation. In between the time it takes to solve the complex MPC problem the results of the previous solution is used to optimize the use of available fast responding DERs in the grid. This allows for a fast time scale control to optimize the system in between slower time scale control actions. The slow time scale control action is performed every 60 minutes and the fast time scale control action is performed every minute. The researchers assume system data is available from SCADA in this case. The method mentioned here uses mixed-integer programming, and the convergence of the problem depends on giving it a proper starting criterion. This means if the initial conditions are far from the actual conduit of the grid the algorithm will not converge. This makes the approach vulnerable to failure from bad data.
+
+Researchers in \cite{NLR_6} use optimum power flow to solve the voltage regulation problem. They use a distributed control approach called a fast distributed optimal reactive power flow algorithm. The algorithm uses local controllers or agents at DG nodes that operate based on information available from neighboring nodes. The formulation only deals with reactive power supplied by DG inverters and does not consider coordinating with traditional regulation devices. 
+
+In \cite{NLR_7}, a control strategy to coordinate the traditional regulation devices with grid-connected microgrid is proposed. The test system used in this study is a four bus system with three buses containing microgrids. The problem is formulated as an MPC and solved using a cooperative distributed MPC strategy. They show coordination between the connected microgrids, capacitor banks, and OLTC. The microgrids are able to maintain the required voltage at their point of common coupling (PCC).
+
+In \cite{NLR_8}, researchers propose a control strategy based on a hybrid approach where local controllers maintain voltage using volt-var control. Then a centralized controller further refines the local controls based on an MPC formulation. They assume system data of all the nodes are available. This allows faster local correction in seconds while the global centralized MPC refines the solution every ten of seconds.
+
+Researchers in \cite{NLR_9} propose a multi-objective pareto front optimization-based technique to optimize the voltage regulation. They use genetic algorithm (GA) to determine a set of non dominated solutions offline. This step can take hours to perform. Then knowledge based local search (KBLS) is done on the reduced solution space achieved from the GA to get the solution based on current objective. If the current objective is the lowest cost of operation the KBLS looks for the solution with the least cost. if the current objective is fast voltage recovery then the KBLS will look for a solution that is within the regulation limits. This allows for creating reduced solution spaces offline and then the use of KBLS online to find the solution based on system operator needs. The researcher here shows numerical simulation to verify the proposed method.
+
+In \cite{NLR_10} researchers propose a coordinated control scheme that takes into account both fast-changing and slow-changing operations. The researchers here propose using model reduction of the distribution grid. Here they represent the distribution grid elements between regulation devices and VSC connected DGs into equivalent circuit models. Then the reduced model is used to verify the effectiveness of the optimization. The researchers here use a sensitivity analysis based technique to coordinate the system voltage.
+
+From the discussion so far it is evident that the problem of coordinating the traditional regulation devices with the grid-connected DERs to regulate distribution system voltage is still being actively researched. There are novel solutions proposed, but they suffer from one or more of the limitations discussed below:
+\begin{itemize}
+    \item They consider that the voltage angle, magnitude, and real \& reactive power from all the nodes are available.
+    \item They only consider DERs or traditional voltage regulation devices to control the system voltage. Which loses the potential benefit of coordinating between DERs and traditional regulation devices.
+    \item Some of the proposed solutions take tens of seconds to minutes to determine the control action. This might not be fast enough response in systems with fast-changing DGs.
+\end{itemize}
+
+Based on these limitations of the current research and the need for a coordinated voltage control (CVC) technique to properly regulate the voltage of a distribution grid containing fast-changing DGs, this paper proposes a novel voltage control algorithm. The proposed algorithm will be able to determine the best node to supply reactive power compensation in case of a voltage violation while using power-flow to estimate the system status. Section \ref{CU} discusses the concepts used in the algorithm. Section \ref{CVC} provides a detailed overview of the CVC algorithm. Section \ref{off1} provides details about the offline verification and section \ref{chil} discusses the real-time CHIL validation of the algorithm.
+% But both these approaches usually propose methods that are very computationally intensive and time-consuming. For example, in \cite{LR5,LR1,LR2,LR3}, researchers describe various methods to coordinate voltage control using the DG and traditional voltage regulation devices. But the control cycles in these methods are in the range of minutes to an hour \cite{LR4}. This makes them unfavorable for controlling the voltage in a distribution grid containing fast responding DGs. 
+\section{Concepts used}
+\label{CU}
+\input{01_concept.tex}
+
+\section{Overall architecture of the coordinated voltage control scheme} \label{CVC}
+\input{02_overall_plan.tex}
+
+\section{Offline validation}
+\label{off1}
+\input{03_offline.tex}
+
+\section{Controller hardware in the loop validation}\label{chil}
+\input{04_CHIL.tex}
+
+\section{Conclusions}
+In this paper, a coordinated voltage control algorithm was proposed to mitigate voltage violations on distribution systems with high penetration of distributed generations. The algorithm is capable of coordinating the inverter interfaced DGs with traditional regulation devices to keep the system voltage within acceptable limits. The algorithm was first validated using offline scenarios under ideal conditions. Then it was validated using real-time CHIL simulation, which was a more practical scenario comprised of estimated states and realistic communication structures. In both cases, the algorithm was shown to maintain the system voltage within acceptable ranges. 
+
+\bibliographystyle{IEEEtran}
+\bibliography{mybib.bib}
+
+
+\end{document}
+
+
