@@ -1,9 +1,5 @@
-The algorithm makes use of two concepts in order to coordinate the voltage regulation between the nodes. They are:
-\begin{itemize}
-\item Voltage sensitivity analysis
-\item Electrical distance calculation
-\end{itemize}
-Also singular value decomposition is used to perform pseudo inverse of the sparse matrices. These concepts are explained in detail in this section.
+The algorithm is based on the two core concepts of Voltage sensitivity analysis and Electrical distance calculation. Also, singular value decomposition is used to perform pseudo inverse of the sparse matrices. These concepts are explained in detail in this section.
+
 \subsection{Voltage Sensitivity Analysis} \label{vsa}
 The aim of the voltage sensitivity analysis is to determine the effect on the voltage of a certain node due to reactive power injection at different nodes in the feeder. Equation (\ref{eq.Pf_equation}) represents the system power-flow equation.  Here ${\Delta Q}, {\Delta P}, {\Delta |V|}$ and ${\Delta \delta}$ represent the change in real power, reactive power, voltage magnitude and voltage angle of nodes. $J$ represents the system Jacobian matrix. The elements of $J$ are shown in (\ref{eq.J_equation}).
 \begin{equation}\label{eq.Pf_equation}
@@ -29,12 +25,11 @@ Using the components of the system Jacobian matrix the $J_{VQ}$ and $J_{VP}$ mat
     {J_{VP}}={J_{P|V|}}-{J_{P\delta}}{J_{Q\delta}}^{-1}{J_{Q|V|}}
 \end{equation}
 
-Using (\ref{eq.JVQ}) and (\ref{eq.JVP}) the total voltage sensitivity due to real and reactive power injected by a DG can be calculated using (\ref{eq.V_PQ}) \cite{Th_ali}. Here, $[\Delta|V|_{PQ}], [P_{PV}] $ and $[Q_{PV}]$ represent the total voltage change, real power injected by DG and reactive power injected by DG, respectively.
-
+Using (\ref{eq.JVQ}) and (\ref{eq.JVP}) the total voltage sensitivity due to real and reactive power injected by a DG can be calculated using (\ref{eq.V_PQ}) \cite{Th_ali}.
 \begin{equation}\label{eq.V_PQ}
 [\Delta|V|_{PQ}] ={ J_{VP}}^{-1} [P_{PV}]+{ J_{VQ}}^{-1} [Q_{PV}]
 \end{equation}
-
+Here, $[\Delta|V|_{PQ}], [P_{PV}] $ and $[Q_{PV}]$ represent the total voltage change, real power injected by DG and reactive power injected by DG, respectively.
 Using the relation $[P_{PV}] = \frac{[Q_{PV}]}{\cos^{-1}(p.f)}$, equation (\ref{eq.V_PQ}) can be written as
 \begin{equation}\label{eq.V_Q}
  [\Delta|V|_{PQ}] ={ J_{VP}}^{-1}\frac{[Q_{PV}]}{\cos^{-1}(p.f)} +{ J_{VQ}}^{-1} [Q_{PV}]
@@ -54,7 +49,7 @@ J_{PVQ} = ( \frac{J_{VP}^{-1}}{\cos^{-1}(p.f)} +{ J_{VQ}}^{-1})^{-1}
  Equation (\ref{eq.PV_Q}) gives us the relation between total voltage sensitivity and reactive power injection. Here, '$p.f$' represents power factor.
 
 \subsection{Electrical Distance Calculation}\label{edc}
-Electrical distance is calculated in order to determine the relative impact on one node due to a change in another node. The electrical distances are calculated by determining $M_{sVQ}$ according to equation (\ref{MsQV}) \cite{int1}.
+Electrical distance determines the relative impact on one node due to a change in another node. The electrical distances are calculated by determining $M_{sVQ}$ according to equation (\ref{MsQV}) \cite{int1}.
 
 \begin{equation}\label{MsQV}
 \begin{bmatrix}
